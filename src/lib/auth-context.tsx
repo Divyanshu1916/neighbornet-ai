@@ -47,11 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async () => {
     const { auth } = getFirebase();
-    if (!auth) return;
-    if (!firebaseConfigured) {
-      toast.error("Firebase not configured", {
-        description: "Add VITE_FIREBASE_* env variables to enable sign-in.",
-      });
+    if (!auth) {
+      toast.error("Firebase unavailable in this environment");
       return;
     }
     try {
