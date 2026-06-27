@@ -8,6 +8,7 @@ import {
   Timestamp,
   writeBatch,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 import { getFirebase } from "./firebase";
 
