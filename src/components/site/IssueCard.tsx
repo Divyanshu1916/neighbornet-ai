@@ -1,8 +1,14 @@
 import { motion } from "framer-motion";
 import { MapPin, Clock, AlertTriangle } from "lucide-react";
-import type { Issue } from "@/lib/issues";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { updateIssueStatus, type Issue, type IssueStatus } from "@/lib/issues";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/lib/auth-context";
 
 function statusClass(s: Issue["status"]) {
   switch (s) {
@@ -19,7 +25,21 @@ function urgencyClass(u: Issue["urgency"]) {
   }
 }
 
+const STATUSES: IssueStatus[] = ["Pending", "In Progress", "Solved"];
+
 export function IssueCard({ issue, index = 0 }: { issue: Issue; index?: number }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (status: IssueStatus) => updateIssueStatus(issue.id, status),
+    onSuccess: () => {
+      toast.success("Status updated");
+      qc.invalidateQueries({ queryKey: ["issues"] });
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Failed to update status"),
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -47,9 +67,23 @@ export function IssueCard({ issue, index = 0 }: { issue: Issue; index?: number }
           </span>
         </div>
 
-        <div className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs">
-          <span className="text-muted-foreground">Reported by</span>
-          <span className="font-medium">{issue.userName ?? issue.userEmail}</span>
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-xs">
+          <div className="flex flex-col">
+            <span className="text-muted-foreground">Reported by</span>
+            <span className="font-medium">{issue.userName ?? issue.userEmail}</span>
+          </div>
+          {user && (
+            <Select
+              value={issue.status}
+              onValueChange={(v) => mutation.mutate(v as IssueStatus)}
+              disabled={mutation.isPending}
+            >
+              <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </Card>
     </motion.div>

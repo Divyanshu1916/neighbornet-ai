@@ -16,7 +16,7 @@ export const Route = createFileRoute("/feed")({
 const filters: ("All" | IssueStatus)[] = ["All", "Pending", "In Progress", "Solved"];
 
 function FeedPage() {
-  const { data: issues = [], isLoading } = useQuery({ queryKey: ["issues"], queryFn: listIssues });
+  const { data: issues = [], isLoading, error } = useQuery({ queryKey: ["issues"], queryFn: listIssues });
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
 
@@ -66,7 +66,12 @@ function FeedPage() {
         </div>
       </div>
 
-      {isLoading ? (
+      {error ? (
+        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+          Couldn't load issues: {error instanceof Error ? error.message : "Unknown error"}.
+          Make sure Firestore is enabled and rules allow access.
+        </div>
+      ) : isLoading ? (
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-56 rounded-2xl" />)}
         </div>

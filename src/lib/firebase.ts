@@ -3,17 +3,15 @@ import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "demo-api-key",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "demo.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "demo-project",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "demo-app-id",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "AIzaSyBacHpZ-_14wZxwh3L-7AOzSmdC2Apvcqk",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "neighbornetai.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "neighbornetai",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "1:436275452266:web:fe68f12a0948a2e87b2d13",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "436275452266",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "neighbornetai.firebasestorage.app",
 };
 
-export const firebaseConfigured =
-  !!import.meta.env.VITE_FIREBASE_API_KEY &&
-  !!import.meta.env.VITE_FIREBASE_PROJECT_ID;
+export const firebaseConfigured = true;
 
 let _app: FirebaseApp | null = null;
 let _auth: Auth | null = null;
