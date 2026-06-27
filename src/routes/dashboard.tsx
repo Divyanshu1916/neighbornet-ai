@@ -77,6 +77,11 @@ function DashboardPage() {
       </div>
 
       <div className="mt-10">
+        {error && (
+          <div className="mb-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            Couldn't load issues: {error instanceof Error ? error.message : "Unknown error"}.
+          </div>
+        )}
         <h2 className="font-display text-xl font-semibold">Recent Issues</h2>
         {isLoading ? (
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
