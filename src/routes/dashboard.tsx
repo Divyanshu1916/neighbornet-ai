@@ -39,7 +39,7 @@ function StatCard({
 }
 
 function DashboardPage() {
-  const { data: issues = [], isLoading } = useQuery({
+  const { data: issues = [], isLoading, error } = useQuery({
     queryKey: ["issues"],
     queryFn: listIssues,
   });
