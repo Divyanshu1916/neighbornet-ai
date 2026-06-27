@@ -1,0 +1,57 @@
+import { motion } from "framer-motion";
+import { MapPin, Clock, AlertTriangle } from "lucide-react";
+import type { Issue } from "@/lib/issues";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+
+function statusClass(s: Issue["status"]) {
+  switch (s) {
+    case "Pending": return "bg-warning/15 text-warning-foreground border border-warning/30 text-[oklch(0.45_0.15_60)]";
+    case "In Progress": return "bg-info/15 border border-info/30 text-[oklch(0.4_0.16_240)]";
+    case "Solved": return "bg-success/15 border border-success/30 text-[oklch(0.35_0.15_155)]";
+  }
+}
+function urgencyClass(u: Issue["urgency"]) {
+  switch (u) {
+    case "High": return "bg-destructive/10 text-destructive border border-destructive/20";
+    case "Medium": return "bg-warning/15 text-[oklch(0.45_0.15_60)] border border-warning/30";
+    case "Low": return "bg-muted text-muted-foreground border border-border";
+  }
+}
+
+export function IssueCard({ issue, index = 0 }: { issue: Issue; index?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: index * 0.04 }}
+    >
+      <Card className="group flex h-full flex-col gap-4 rounded-2xl border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <Badge variant="outline" className="rounded-full text-xs">{issue.category}</Badge>
+            <h3 className="mt-2 font-display text-lg font-semibold leading-tight">{issue.title}</h3>
+          </div>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(issue.status)}`}>
+            {issue.status}
+          </span>
+        </div>
+
+        <p className="line-clamp-3 text-sm text-muted-foreground">{issue.description}</p>
+
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{issue.location}</span>
+          <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{issue.createdAt.toLocaleDateString()}</span>
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${urgencyClass(issue.urgency)}`}>
+            <AlertTriangle className="h-3 w-3" /> {issue.urgency}
+          </span>
+        </div>
+
+        <div className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs">
+          <span className="text-muted-foreground">Reported by</span>
+          <span className="font-medium">{issue.userName ?? issue.userEmail}</span>
+        </div>
+      </Card>
+    </motion.div>
+  );
+}
