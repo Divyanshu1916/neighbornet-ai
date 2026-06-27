@@ -58,6 +58,13 @@ export async function createIssue(data: NewIssue) {
   });
 }
 
+export async function updateIssueStatus(id: string, status: IssueStatus) {
+  const { db } = getFirebase();
+  if (!db) throw new Error("Firestore unavailable");
+  await updateDoc(doc(db, COLLECTION, id), { status });
+}
+
+
 export async function listIssues(): Promise<Issue[]> {
   const { db } = getFirebase();
   if (!db) return [];
