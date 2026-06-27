@@ -11,7 +11,7 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { getFirebase, googleProvider, firebaseConfigured } from "./firebase";
+import { getFirebase, googleProvider } from "./firebase";
 import { toast } from "sonner";
 
 interface AuthCtx {
