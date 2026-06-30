@@ -110,7 +110,14 @@ function Landing() {
                   </Button>
                 </Link>
               ) : (
-                <Button size="lg" onClick={login} className="rounded-xl">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    toast.info("Please sign in to report an issue.");
+                    login();
+                  }}
+                  className="rounded-xl"
+                >
                   Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
