@@ -21,6 +21,8 @@ export function Navbar() {
   const { user, login, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const admin = isAdmin(user);
+  const links = admin ? [...baseLinks, { to: "/admin", label: "Admin" }] : baseLinks;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
