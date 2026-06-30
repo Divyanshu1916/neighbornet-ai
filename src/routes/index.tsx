@@ -276,31 +276,66 @@ function Landing() {
           <p className="mt-3 text-muted-foreground">A complete civic toolkit for everyday neighborhood problems.</p>
         </div>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { icon: Megaphone, t: "One-tap Reporting", d: "Title, category, urgency, location — submit in under 30 seconds." },
-            { icon: MapPin, t: "Hyperlocal Feed", d: "See what's happening on your street, in your sector, in your city." },
-            { icon: Zap, t: "Live Status Tracking", d: "Pending, In Progress, Solved — everyone sees the same source of truth." },
-            { icon: Trophy, t: "Community Heroes", d: "Earn points for reporting and solving issues. Climb the leaderboard." },
-            { icon: ShieldCheck, t: "Secure Sign-In", d: "Google authentication. No spam, no fake accounts." },
-            { icon: Sparkles, t: "AI-Assisted Triage", d: "Smart category and urgency suggestions to speed up response." },
-          ].map((f, i) => (
-            <motion.div
+          {FEATURES.map((f, i) => (
+            <motion.button
               key={f.t}
+              type="button"
+              onClick={() => setOpenFeature(f)}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
-              className="group rounded-2xl border border-border bg-card p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-card"
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.97 }}
+              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 text-left shadow-soft transition-all hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              aria-label={`Learn more about ${f.t}`}
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-hero text-white shadow-soft">
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 font-display text-lg font-semibold">{f.t}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{f.d}</p>
-            </motion.div>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-80 transition-opacity group-hover:opacity-100">
+                Learn more <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </motion.button>
           ))}
         </div>
       </section>
+
+      {/* FEATURE MODAL */}
+      <Dialog open={!!openFeature} onOpenChange={(o) => !o && setOpenFeature(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-lg">
+          {openFeature && (
+            <>
+              <DialogHeader>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-hero text-white shadow-soft">
+                  <openFeature.icon className="h-6 w-6" />
+                </div>
+                <DialogTitle className="mt-3 font-display text-2xl">{openFeature.t}</DialogTitle>
+                <DialogDescription className="text-base">{openFeature.intro}</DialogDescription>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">{openFeature.detail}</p>
+              <ul className="space-y-2">
+                {openFeature.bullets.map((b) => (
+                  <li key={b} className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="outline" onClick={() => setOpenFeature(null)} className="rounded-xl">
+                  Close
+                </Button>
+                <Button onClick={() => handleCta(openFeature)} className="rounded-xl">
+                  {openFeature.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* HOW IT WORKS */}
       <section className="bg-soft py-20">
