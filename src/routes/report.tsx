@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, Sparkles, Wand2 } from "lucide-react";
+import { Send, Sparkles, Wand2, Upload, X, ImageIcon } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { classifyIssue } from "@/lib/classifier";
@@ -12,11 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { createIssue, type IssueCategory, type IssueUrgency } from "@/lib/issues";
+import { uploadIssueImage, validateImage, ACCEPTED_IMAGE_TYPES } from "@/lib/upload";
 
 export const Route = createFileRoute("/report")({
   head: () => ({ meta: [{ title: "Report an Issue — NeighborNet AI" }] }),
