@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -9,6 +9,7 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle2,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -17,6 +18,117 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+type FeatureDetail = {
+  icon: LucideIcon;
+  t: string;
+  d: string;
+  intro: string;
+  detail: string;
+  bullets: string[];
+  cta: { label: string; to?: string; action?: "login" };
+};
+
+const FEATURES: FeatureDetail[] = [
+  {
+    icon: Megaphone,
+    t: "One-tap Reporting",
+    d: "Title, category, urgency, location — submit in under 30 seconds.",
+    intro: "Report neighborhood issues in seconds, from anywhere.",
+    detail:
+      "A streamlined form designed for the street, not the desk. Fill in the essentials, hit submit, and your report is instantly live for the whole community to see and act on.",
+    bullets: [
+      "Mobile-first form optimized for one-handed use",
+      "Pick from clear categories like Garbage, Road Damage, Water Leakage",
+      "Set urgency so critical issues surface first",
+      "Manual location field — landmark, area, or address",
+    ],
+    cta: { label: "Report an Issue", to: "/report" },
+  },
+  {
+    icon: MapPin,
+    t: "Hyperlocal Feed",
+    d: "See what's happening on your street, in your sector, in your city.",
+    intro: "A live pulse of every issue in your neighborhood.",
+    detail:
+      "Browse and search every report from your community. Filter by category, status, or urgency to find what matters to you right now.",
+    bullets: [
+      "Search by keyword across all reports",
+      "Filter by category, status, and urgency",
+      "Open to everyone — no sign-in required to view",
+      "Real-time updates as new issues are reported",
+    ],
+    cta: { label: "Explore Community Feed", to: "/feed" },
+  },
+  {
+    icon: Zap,
+    t: "Live Status Tracking",
+    d: "Pending, In Progress, Solved — everyone sees the same source of truth.",
+    intro: "Transparent progress from report to resolution.",
+    detail:
+      "Every issue carries a public status that updates in real time. No more guessing whether something is being worked on — the whole community sees the same answer.",
+    bullets: [
+      "Three clear states: Pending, In Progress, Solved",
+      "Powered by Firestore real-time listeners",
+      "Admin-controlled status changes for trust and accountability",
+      "Status badges visible on every issue card",
+    ],
+    cta: { label: "View Dashboard", to: "/dashboard" },
+  },
+  {
+    icon: Trophy,
+    t: "Community Heroes",
+    d: "Earn points for reporting and solving issues. Climb the leaderboard.",
+    intro: "Recognition for the neighbors who show up.",
+    detail:
+      "Every report and resolution earns you points. The leaderboard celebrates the most active members of your community — the people quietly making the block better.",
+    bullets: [
+      "Points for issues reported and issues solved",
+      "Public leaderboard ranks top contributors",
+      "Profile page tracks your personal impact",
+      "Open and transparent scoring",
+    ],
+    cta: { label: "See the Leaderboard", to: "/leaderboard" },
+  },
+  {
+    icon: ShieldCheck,
+    t: "Secure Sign-In",
+    d: "Google authentication. No spam, no fake accounts.",
+    intro: "Trusted identity for a trusted community.",
+    detail:
+      "Sign in with Google in a single tap. We never see or store your password, and only real accounts can participate — keeping the feed clean and credible.",
+    bullets: [
+      "One-tap Google Sign-In",
+      "No passwords stored, no email spam",
+      "Public pages remain open for browsing",
+      "Admin-only controls for sensitive actions",
+    ],
+    cta: { label: "Sign In with Google", action: "login" },
+  },
+  {
+    icon: Sparkles,
+    t: "AI-Assisted Triage",
+    d: "Smart category and urgency suggestions to speed up response.",
+    intro: "An on-device classifier that thinks while you type.",
+    detail:
+      "As you describe an issue, NeighborNet AI scans for keywords and suggests the right category and urgency level — so reports are tagged consistently and the most critical ones rise to the top.",
+    bullets: [
+      "Keyword-based, runs entirely in your browser",
+      "Suggests category: Garbage, Road Damage, Water Leakage, and more",
+      "Suggests urgency: High, Medium, or Low",
+      "One-click apply — you stay in control",
+    ],
+    cta: { label: "Try the Report Form", to: "/report" },
+  },
+];
 
 function HeroStats() {
   const [stats, setStats] = useState<{ reported: number; resolved: number; neighborhoods: number } | null>(null);
