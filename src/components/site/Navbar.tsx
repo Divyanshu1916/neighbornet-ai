@@ -1,6 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X, LogOut, Network } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,15 +49,23 @@ export function Navbar() {
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
 
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => {
+              if (user) {
+                router.navigate({ to: "/report" });
+              } else {
+                toast.info("Please sign in to report an issue.");
+                login();
+              }
+            }}
+          >
+            Report Issue
+          </Button>
+
           {user ? (
             <>
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => router.navigate({ to: "/report" })}
-              >
-                Report Issue
-              </Button>
               <Link to="/profile" className="flex items-center gap-2">
                 {isAdmin(user) && (
                   <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
@@ -75,7 +84,7 @@ export function Navbar() {
               </Button>
             </>
           ) : (
-            <Button size="sm" onClick={login}>
+            <Button size="sm" variant="outline" onClick={login}>
               Sign in with Google
             </Button>
           )}
@@ -109,17 +118,25 @@ export function Navbar() {
               </Link>
             ))}
             <div className="mt-2 flex flex-col gap-2 pt-2">
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                  if (user) {
+                    router.navigate({ to: "/report" });
+                  } else {
+                    toast.info("Please sign in to report an issue.");
+                    login();
+                  }
+                }}
+              >
+                Report Issue
+              </Button>
               {user ? (
-                <>
-                  <Button onClick={() => { setOpen(false); router.navigate({ to: "/report" }); }}>
-                    Report Issue
-                  </Button>
-                  <Button variant="outline" onClick={() => { setOpen(false); logout(); }}>
-                    <LogOut className="mr-2 h-4 w-4" /> Logout
-                  </Button>
-                </>
+                <Button variant="outline" onClick={() => { setOpen(false); logout(); }}>
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Button>
               ) : (
-                <Button onClick={() => { setOpen(false); login(); }}>Sign in with Google</Button>
+                <Button variant="outline" onClick={() => { setOpen(false); login(); }}>Sign in with Google</Button>
               )}
             </div>
           </div>

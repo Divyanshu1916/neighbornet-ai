@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
@@ -110,7 +111,14 @@ function Landing() {
                   </Button>
                 </Link>
               ) : (
-                <Button size="lg" onClick={login} className="rounded-xl">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    toast.info("Please sign in to report an issue.");
+                    login();
+                  }}
+                  className="rounded-xl"
+                >
                   Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
