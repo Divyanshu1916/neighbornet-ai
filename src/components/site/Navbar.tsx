@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { isAdmin } from "@/lib/admin";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
+import { NotificationBell } from "@/components/site/NotificationBell";
 
 
-const links = [
+const baseLinks = [
   { to: "/", label: "Home" },
   { to: "/feed", label: "Feed" },
   { to: "/leaderboard", label: "Leaderboard" },
