@@ -132,6 +132,60 @@ const FEATURES: FeatureDetail[] = [
   },
 ];
 
+type Step = {
+  n: string;
+  t: string;
+  d: string;
+  intro: string;
+  detail: string;
+  bullets: string[];
+};
+
+const STEPS: Step[] = [
+  {
+    n: "01",
+    t: "Spot it",
+    d: "See a pothole, leak, or broken light? Snap the details.",
+    intro: "Notice something off in your neighborhood.",
+    detail:
+      "Every fix starts with someone paying attention. Whether it's an overflowing bin, a flickering streetlight, or a pothole growing by the day — if you've spotted it, you're already halfway to solving it.",
+    bullets: [
+      "Walk your block with fresh eyes",
+      "Note the exact location and landmark",
+      "Capture a quick photo if you can",
+      "Trust your instinct — if it bothers you, it bothers others",
+    ],
+  },
+  {
+    n: "02",
+    t: "Report it",
+    d: "Submit with category, urgency, and exact location.",
+    intro: "File a clear, structured report in under a minute.",
+    detail:
+      "Open the report form, describe what you saw, and let our AI assistant suggest the right category and urgency. Add a location and an optional photo, then submit — your neighbors see it instantly.",
+    bullets: [
+      "AI-suggested category and urgency",
+      "Manual location field — area, landmark, or address",
+      "Optional image upload (JPG, PNG, WebP)",
+      "One-tap submission to the community feed",
+    ],
+  },
+  {
+    n: "03",
+    t: "Solve it",
+    d: "Neighbors and authorities track progress until it's resolved.",
+    intro: "Track the fix from Pending to Solved.",
+    detail:
+      "Once reported, the issue lives on the community feed with a transparent status. Admins update progress in real time, neighbors rally around urgent cases, and everyone sees the same source of truth.",
+    bullets: [
+      "Live status: Pending, In Progress, Solved",
+      "Real-time updates via Firestore",
+      "Earn community points when issues you reported get solved",
+      "Public accountability for every fix",
+    ],
+  },
+];
+
 function HeroStats() {
   const [stats, setStats] = useState<{ reported: number; resolved: number; neighborhoods: number } | null>(null);
   useEffect(() => {
