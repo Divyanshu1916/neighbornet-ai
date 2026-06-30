@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -9,6 +9,7 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle2,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -17,6 +18,117 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+type FeatureDetail = {
+  icon: LucideIcon;
+  t: string;
+  d: string;
+  intro: string;
+  detail: string;
+  bullets: string[];
+  cta: { label: string; to?: string; action?: "login" };
+};
+
+const FEATURES: FeatureDetail[] = [
+  {
+    icon: Megaphone,
+    t: "One-tap Reporting",
+    d: "Title, category, urgency, location — submit in under 30 seconds.",
+    intro: "Report neighborhood issues in seconds, from anywhere.",
+    detail:
+      "A streamlined form designed for the street, not the desk. Fill in the essentials, hit submit, and your report is instantly live for the whole community to see and act on.",
+    bullets: [
+      "Mobile-first form optimized for one-handed use",
+      "Pick from clear categories like Garbage, Road Damage, Water Leakage",
+      "Set urgency so critical issues surface first",
+      "Manual location field — landmark, area, or address",
+    ],
+    cta: { label: "Report an Issue", to: "/report" },
+  },
+  {
+    icon: MapPin,
+    t: "Hyperlocal Feed",
+    d: "See what's happening on your street, in your sector, in your city.",
+    intro: "A live pulse of every issue in your neighborhood.",
+    detail:
+      "Browse and search every report from your community. Filter by category, status, or urgency to find what matters to you right now.",
+    bullets: [
+      "Search by keyword across all reports",
+      "Filter by category, status, and urgency",
+      "Open to everyone — no sign-in required to view",
+      "Real-time updates as new issues are reported",
+    ],
+    cta: { label: "Explore Community Feed", to: "/feed" },
+  },
+  {
+    icon: Zap,
+    t: "Live Status Tracking",
+    d: "Pending, In Progress, Solved — everyone sees the same source of truth.",
+    intro: "Transparent progress from report to resolution.",
+    detail:
+      "Every issue carries a public status that updates in real time. No more guessing whether something is being worked on — the whole community sees the same answer.",
+    bullets: [
+      "Three clear states: Pending, In Progress, Solved",
+      "Powered by Firestore real-time listeners",
+      "Admin-controlled status changes for trust and accountability",
+      "Status badges visible on every issue card",
+    ],
+    cta: { label: "View Dashboard", to: "/dashboard" },
+  },
+  {
+    icon: Trophy,
+    t: "Community Heroes",
+    d: "Earn points for reporting and solving issues. Climb the leaderboard.",
+    intro: "Recognition for the neighbors who show up.",
+    detail:
+      "Every report and resolution earns you points. The leaderboard celebrates the most active members of your community — the people quietly making the block better.",
+    bullets: [
+      "Points for issues reported and issues solved",
+      "Public leaderboard ranks top contributors",
+      "Profile page tracks your personal impact",
+      "Open and transparent scoring",
+    ],
+    cta: { label: "See the Leaderboard", to: "/leaderboard" },
+  },
+  {
+    icon: ShieldCheck,
+    t: "Secure Sign-In",
+    d: "Google authentication. No spam, no fake accounts.",
+    intro: "Trusted identity for a trusted community.",
+    detail:
+      "Sign in with Google in a single tap. We never see or store your password, and only real accounts can participate — keeping the feed clean and credible.",
+    bullets: [
+      "One-tap Google Sign-In",
+      "No passwords stored, no email spam",
+      "Public pages remain open for browsing",
+      "Admin-only controls for sensitive actions",
+    ],
+    cta: { label: "Sign In with Google", action: "login" },
+  },
+  {
+    icon: Sparkles,
+    t: "AI-Assisted Triage",
+    d: "Smart category and urgency suggestions to speed up response.",
+    intro: "An on-device classifier that thinks while you type.",
+    detail:
+      "As you describe an issue, NeighborNet AI scans for keywords and suggests the right category and urgency level — so reports are tagged consistently and the most critical ones rise to the top.",
+    bullets: [
+      "Keyword-based, runs entirely in your browser",
+      "Suggests category: Garbage, Road Damage, Water Leakage, and more",
+      "Suggests urgency: High, Medium, or Low",
+      "One-click apply — you stay in control",
+    ],
+    cta: { label: "Try the Report Form", to: "/report" },
+  },
+];
 
 function HeroStats() {
   const [stats, setStats] = useState<{ reported: number; resolved: number; neighborhoods: number } | null>(null);
@@ -79,6 +191,29 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { user, login } = useAuth();
+  const navigate = useNavigate();
+  const [openFeature, setOpenFeature] = useState<FeatureDetail | null>(null);
+
+  const handleCta = (f: FeatureDetail) => {
+    setOpenFeature(null);
+    if (f.cta.action === "login") {
+      if (!user) {
+        toast.info("Sign in to continue.");
+        login();
+      }
+      return;
+    }
+    if (f.cta.to) {
+      const protectedRoutes = ["/report", "/dashboard"];
+      if (!user && protectedRoutes.includes(f.cta.to)) {
+        toast.info("Please sign in to continue.");
+        login();
+        return;
+      }
+      navigate({ to: f.cta.to });
+    }
+  };
+
   return (
     <div>
       {/* HERO */}
@@ -141,31 +276,66 @@ function Landing() {
           <p className="mt-3 text-muted-foreground">A complete civic toolkit for everyday neighborhood problems.</p>
         </div>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { icon: Megaphone, t: "One-tap Reporting", d: "Title, category, urgency, location — submit in under 30 seconds." },
-            { icon: MapPin, t: "Hyperlocal Feed", d: "See what's happening on your street, in your sector, in your city." },
-            { icon: Zap, t: "Live Status Tracking", d: "Pending, In Progress, Solved — everyone sees the same source of truth." },
-            { icon: Trophy, t: "Community Heroes", d: "Earn points for reporting and solving issues. Climb the leaderboard." },
-            { icon: ShieldCheck, t: "Secure Sign-In", d: "Google authentication. No spam, no fake accounts." },
-            { icon: Sparkles, t: "AI-Assisted Triage", d: "Smart category and urgency suggestions to speed up response." },
-          ].map((f, i) => (
-            <motion.div
+          {FEATURES.map((f, i) => (
+            <motion.button
               key={f.t}
+              type="button"
+              onClick={() => setOpenFeature(f)}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
-              className="group rounded-2xl border border-border bg-card p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-card"
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.97 }}
+              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 text-left shadow-soft transition-all hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              aria-label={`Learn more about ${f.t}`}
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-hero text-white shadow-soft">
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 font-display text-lg font-semibold">{f.t}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{f.d}</p>
-            </motion.div>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-80 transition-opacity group-hover:opacity-100">
+                Learn more <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </motion.button>
           ))}
         </div>
       </section>
+
+      {/* FEATURE MODAL */}
+      <Dialog open={!!openFeature} onOpenChange={(o) => !o && setOpenFeature(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-lg">
+          {openFeature && (
+            <>
+              <DialogHeader>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-hero text-white shadow-soft">
+                  <openFeature.icon className="h-6 w-6" />
+                </div>
+                <DialogTitle className="mt-3 font-display text-2xl">{openFeature.t}</DialogTitle>
+                <DialogDescription className="text-base">{openFeature.intro}</DialogDescription>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">{openFeature.detail}</p>
+              <ul className="space-y-2">
+                {openFeature.bullets.map((b) => (
+                  <li key={b} className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="outline" onClick={() => setOpenFeature(null)} className="rounded-xl">
+                  Close
+                </Button>
+                <Button onClick={() => handleCta(openFeature)} className="rounded-xl">
+                  {openFeature.cta.label} <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* HOW IT WORKS */}
       <section className="bg-soft py-20">
