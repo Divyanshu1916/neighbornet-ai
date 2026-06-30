@@ -49,15 +49,23 @@ export function Navbar() {
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
 
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => {
+              if (user) {
+                router.navigate({ to: "/report" });
+              } else {
+                toast.info("Please sign in to report an issue.");
+                login();
+              }
+            }}
+          >
+            Report Issue
+          </Button>
+
           {user ? (
             <>
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => router.navigate({ to: "/report" })}
-              >
-                Report Issue
-              </Button>
               <Link to="/profile" className="flex items-center gap-2">
                 {isAdmin(user) && (
                   <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
@@ -76,7 +84,7 @@ export function Navbar() {
               </Button>
             </>
           ) : (
-            <Button size="sm" onClick={login}>
+            <Button size="sm" variant="outline" onClick={login}>
               Sign in with Google
             </Button>
           )}
