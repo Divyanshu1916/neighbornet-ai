@@ -249,6 +249,7 @@ function Landing() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const [openFeature, setOpenFeature] = useState<FeatureDetail | null>(null);
+  const [openStep, setOpenStep] = useState<Step | null>(null);
 
   const handleCta = (f: FeatureDetail) => {
     setOpenFeature(null);
