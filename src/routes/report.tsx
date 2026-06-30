@@ -44,6 +44,7 @@ function ReportPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -53,11 +54,65 @@ function ReportPage() {
     urgency: "Medium" as IssueUrgency,
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
+
+  const handleFileSelect = (file: File | null) => {
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+    const err = validateImage(file);
+    if (err) {
+      toast.error(err);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    setImageFile(file);
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const mutation = useMutation({
     mutationFn: async () => {
       const parsed = schema.parse(form);
+      let imageURL: string | null = null;
+      if (imageFile) {
+        setIsUploading(true);
+        setUploadProgress(15);
+        // Simulated progress (Supabase JS SDK doesn't expose upload progress yet)
+        const tick = setInterval(() => {
+          setUploadProgress((p) => (p < 85 ? p + 10 : p));
+        }, 200);
+        try {
+          imageURL = await uploadIssueImage(
+            imageFile,
+            user!.email ?? "anonymous",
+          );
+          setUploadProgress(100);
+        } finally {
+          clearInterval(tick);
+          setIsUploading(false);
+        }
+      }
       await createIssue({
         ...parsed,
+        imageURL,
         userEmail: user!.email ?? "anonymous@neighbor.net",
         userName: user!.displayName ?? undefined,
       });
@@ -68,13 +123,17 @@ function ReportPage() {
       navigate({ to: "/feed" });
     },
     onError: (e: unknown) => {
+      setIsUploading(false);
+      setUploadProgress(0);
       const msg = e instanceof z.ZodError ? e.issues[0].message : e instanceof Error ? e.message : "Failed to submit";
       toast.error(msg);
     },
   });
 
+  const isBusy = mutation.isPending || isUploading;
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:max-w-3xl lg:py-16">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -142,11 +201,75 @@ function ReportPage() {
               value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="space-y-2">
+            <Label htmlFor="image">
+              Photo <span className="text-xs font-normal text-muted-foreground">(optional, JPG/PNG/WebP, max 10 MB)</span>
+            </Label>
+            <input
+              ref={fileInputRef}
+              id="image"
+              type="file"
+              accept={ACCEPTED_IMAGE_TYPES.join(",")}
+              className="sr-only"
+              onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
+            />
+            {!imagePreview ? (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5"
+              >
+                <ImageIcon className="h-6 w-6" />
+                <span className="font-medium">Tap to upload an image</span>
+                <span className="text-xs">JPG, PNG or WebP · up to 10 MB</span>
+              </button>
+            ) : (
+              <div className="relative overflow-hidden rounded-2xl border border-border bg-muted/30">
+                <img
+                  src={imagePreview}
+                  alt="Selected preview"
+                  className="max-h-72 w-full object-cover"
+                />
+                <div className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
+                  <span className="truncate text-muted-foreground">
+                    {imageFile?.name} · {imageFile ? (imageFile.size / 1024 / 1024).toFixed(2) : 0} MB
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isBusy}
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={clearImage}
+                      disabled={isBusy}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {isUploading && (
+              <div className="space-y-1">
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground">Uploading image… {uploadProgress}%</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col-reverse items-stretch gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
             <Button type="button" variant="ghost" onClick={() => navigate({ to: "/feed" })}>Cancel</Button>
-            <Button type="submit" disabled={mutation.isPending} className="rounded-xl">
+            <Button type="submit" disabled={isBusy} className="rounded-xl">
               <Send className="mr-2 h-4 w-4" />
-              {mutation.isPending ? "Submitting…" : "Submit Report"}
+              {isUploading ? "Uploading…" : mutation.isPending ? "Submitting…" : "Submit Report"}
             </Button>
           </div>
         </form>
