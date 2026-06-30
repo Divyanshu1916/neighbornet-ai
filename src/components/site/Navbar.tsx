@@ -118,17 +118,25 @@ export function Navbar() {
               </Link>
             ))}
             <div className="mt-2 flex flex-col gap-2 pt-2">
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                  if (user) {
+                    router.navigate({ to: "/report" });
+                  } else {
+                    toast.info("Please sign in to report an issue.");
+                    login();
+                  }
+                }}
+              >
+                Report Issue
+              </Button>
               {user ? (
-                <>
-                  <Button onClick={() => { setOpen(false); router.navigate({ to: "/report" }); }}>
-                    Report Issue
-                  </Button>
-                  <Button variant="outline" onClick={() => { setOpen(false); logout(); }}>
-                    <LogOut className="mr-2 h-4 w-4" /> Logout
-                  </Button>
-                </>
+                <Button variant="outline" onClick={() => { setOpen(false); logout(); }}>
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Button>
               ) : (
-                <Button onClick={() => { setOpen(false); login(); }}>Sign in with Google</Button>
+                <Button variant="outline" onClick={() => { setOpen(false); login(); }}>Sign in with Google</Button>
               )}
             </div>
           </div>
