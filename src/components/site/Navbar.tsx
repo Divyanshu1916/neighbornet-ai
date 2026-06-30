@@ -4,6 +4,7 @@ import { Menu, X, LogOut, Network } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { isAdmin } from "@/lib/admin";
 
 const links = [
   { to: "/", label: "Home" },
@@ -52,7 +53,12 @@ export function Navbar() {
               >
                 Report Issue
               </Button>
-              <Link to="/profile">
+              <Link to="/profile" className="flex items-center gap-2">
+                {isAdmin(user) && (
+                  <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                    Admin
+                  </span>
+                )}
                 <Avatar className="h-9 w-9 ring-2 ring-primary/20">
                   <AvatarImage src={user.photoURL ?? undefined} />
                   <AvatarFallback>

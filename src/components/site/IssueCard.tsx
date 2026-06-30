@@ -9,6 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
+import { isAdmin } from "@/lib/admin";
 
 function statusClass(s: Issue["status"]) {
   switch (s) {
@@ -72,7 +73,7 @@ export function IssueCard({ issue, index = 0 }: { issue: Issue; index?: number }
             <span className="text-muted-foreground">Reported by</span>
             <span className="font-medium">{issue.userName ?? issue.userEmail}</span>
           </div>
-          {user && (
+          {isAdmin(user) ? (
             <Select
               value={issue.status}
               onValueChange={(v) => mutation.mutate(v as IssueStatus)}
@@ -83,6 +84,10 @@ export function IssueCard({ issue, index = 0 }: { issue: Issue; index?: number }
                 {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
+          ) : (
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(issue.status)}`}>
+              {issue.status}
+            </span>
           )}
         </div>
       </Card>
