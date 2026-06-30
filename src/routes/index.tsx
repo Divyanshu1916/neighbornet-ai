@@ -132,6 +132,60 @@ const FEATURES: FeatureDetail[] = [
   },
 ];
 
+type Step = {
+  n: string;
+  t: string;
+  d: string;
+  intro: string;
+  detail: string;
+  bullets: string[];
+};
+
+const STEPS: Step[] = [
+  {
+    n: "01",
+    t: "Spot it",
+    d: "See a pothole, leak, or broken light? Snap the details.",
+    intro: "Notice something off in your neighborhood.",
+    detail:
+      "Every fix starts with someone paying attention. Whether it's an overflowing bin, a flickering streetlight, or a pothole growing by the day — if you've spotted it, you're already halfway to solving it.",
+    bullets: [
+      "Walk your block with fresh eyes",
+      "Note the exact location and landmark",
+      "Capture a quick photo if you can",
+      "Trust your instinct — if it bothers you, it bothers others",
+    ],
+  },
+  {
+    n: "02",
+    t: "Report it",
+    d: "Submit with category, urgency, and exact location.",
+    intro: "File a clear, structured report in under a minute.",
+    detail:
+      "Open the report form, describe what you saw, and let our AI assistant suggest the right category and urgency. Add a location and an optional photo, then submit — your neighbors see it instantly.",
+    bullets: [
+      "AI-suggested category and urgency",
+      "Manual location field — area, landmark, or address",
+      "Optional image upload (JPG, PNG, WebP)",
+      "One-tap submission to the community feed",
+    ],
+  },
+  {
+    n: "03",
+    t: "Solve it",
+    d: "Neighbors and authorities track progress until it's resolved.",
+    intro: "Track the fix from Pending to Solved.",
+    detail:
+      "Once reported, the issue lives on the community feed with a transparent status. Admins update progress in real time, neighbors rally around urgent cases, and everyone sees the same source of truth.",
+    bullets: [
+      "Live status: Pending, In Progress, Solved",
+      "Real-time updates via Firestore",
+      "Earn community points when issues you reported get solved",
+      "Public accountability for every fix",
+    ],
+  },
+];
+
 function HeroStats() {
   const [stats, setStats] = useState<{ reported: number; resolved: number; neighborhoods: number } | null>(null);
   useEffect(() => {
@@ -195,6 +249,7 @@ function Landing() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const [openFeature, setOpenFeature] = useState<FeatureDetail | null>(null);
+  const [openStep, setOpenStep] = useState<Step | null>(null);
 
   const handleCta = (f: FeatureDetail) => {
     setOpenFeature(null);
@@ -347,18 +402,19 @@ function Landing() {
             <p className="mt-3 text-muted-foreground">Three steps from a frustration to a fix.</p>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {[
-              { n: "01", t: "Spot it", d: "See a pothole, leak, or broken light? Snap the details." },
-              { n: "02", t: "Report it", d: "Submit with category, urgency, and exact location." },
-              { n: "03", t: "Solve it", d: "Neighbors and authorities track progress until it's resolved." },
-            ].map((s, i) => (
-              <motion.div
+            {STEPS.map((s, i) => (
+              <motion.button
                 key={s.n}
+                type="button"
+                onClick={() => setOpenStep(s)}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
-                className="relative overflow-hidden rounded-2xl border border-border bg-card p-7 shadow-soft"
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="group relative w-full overflow-hidden rounded-2xl border border-border bg-card p-7 text-left shadow-soft transition-shadow hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer"
+                aria-label={`Learn more about step ${s.n}: ${s.t}`}
               >
                 <div className="absolute -right-2 -top-2 select-none font-display text-7xl font-extrabold text-primary/10">
                   {s.n}
@@ -366,11 +422,45 @@ function Landing() {
                 <CheckCircle2 className="h-6 w-6 text-primary" />
                 <h3 className="mt-4 font-display text-xl font-semibold">{s.t}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{s.d}</p>
-              </motion.div>
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-80 transition-opacity group-hover:opacity-100">
+                  Learn more <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </motion.button>
             ))}
           </div>
         </div>
       </section>
+
+      {/* HOW IT WORKS MODAL */}
+      <Dialog open={!!openStep} onOpenChange={(o) => !o && setOpenStep(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl duration-300 sm:max-w-lg">
+          {openStep && (
+            <>
+              <DialogHeader>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-hero font-display text-lg font-bold text-white shadow-soft">
+                  {openStep.n}
+                </div>
+                <DialogTitle className="mt-3 font-display text-2xl">{openStep.t}</DialogTitle>
+                <DialogDescription className="text-base">{openStep.intro}</DialogDescription>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">{openStep.detail}</p>
+              <ul className="space-y-2">
+                {openStep.bullets.map((b) => (
+                  <li key={b} className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="outline" onClick={() => setOpenStep(null)} className="rounded-xl">
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* CTA */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
