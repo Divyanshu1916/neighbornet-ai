@@ -68,18 +68,7 @@ function Landing() {
               </Link>
             </div>
 
-            <div className="mt-10 grid grid-cols-3 gap-4 text-center sm:max-w-md sm:mx-auto">
-              {[
-                { n: "12K+", l: "Issues reported" },
-                { n: "8.4K", l: "Resolved" },
-                { n: "320+", l: "Neighborhoods" },
-              ].map((s) => (
-                <div key={s.l} className="rounded-2xl border border-border bg-card/60 px-3 py-4 shadow-soft">
-                  <div className="font-display text-2xl font-bold text-primary">{s.n}</div>
-                  <div className="text-xs text-muted-foreground">{s.l}</div>
-                </div>
-              ))}
-            </div>
+            <HeroStats />
           </motion.div>
         </div>
       </section>
