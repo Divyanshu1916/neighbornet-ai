@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { isAdmin } from "@/lib/admin";
+import { ThemeToggle } from "@/components/site/ThemeToggle";
+
 
 const links = [
   { to: "/", label: "Home" },
@@ -44,6 +46,8 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
+
           {user ? (
             <>
               <Button
@@ -77,13 +81,17 @@ export function Navbar() {
           )}
         </div>
 
-        <button
-          className="md:hidden rounded-lg p-2 hover:bg-accent"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            className="rounded-lg p-2 hover:bg-accent"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
       </div>
 
       {open && (
