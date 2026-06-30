@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { listIssues, type Issue } from "@/lib/issues";
 import { isAdmin } from "@/lib/admin";
+import { ThemeToggle } from "@/components/site/ThemeToggle";
+
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — NeighborNet AI" }] }),
@@ -57,7 +59,11 @@ function ProfilePage() {
                 <Mail className="h-3.5 w-3.5" />{user?.email}
               </p>
             </div>
-            <Button variant="outline" onClick={logout}><LogOut className="mr-2 h-4 w-4" />Logout</Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" onClick={logout}><LogOut className="mr-2 h-4 w-4" />Logout</Button>
+            </div>
+
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
