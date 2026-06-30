@@ -97,6 +97,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
+          {admin && <NotificationBell />}
           <ThemeToggle />
           <button
             className="rounded-lg p-2 hover:bg-accent"
