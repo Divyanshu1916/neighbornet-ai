@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { listIssues, type Issue } from "@/lib/issues";
+import { isAdmin } from "@/lib/admin";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — NeighborNet AI" }] }),
@@ -44,7 +45,14 @@ function ProfilePage() {
         <div className="px-6 pb-6 pt-16">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="font-display text-2xl font-bold">{user?.displayName ?? "Neighbor"}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-display text-2xl font-bold">{user?.displayName ?? "Neighbor"}</h1>
+                {isAdmin(user) && (
+                  <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
+                    Admin
+                  </span>
+                )}
+              </div>
               <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Mail className="h-3.5 w-3.5" />{user?.email}
               </p>
