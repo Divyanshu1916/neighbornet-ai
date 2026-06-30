@@ -191,6 +191,29 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { user, login } = useAuth();
+  const navigate = useNavigate();
+  const [openFeature, setOpenFeature] = useState<FeatureDetail | null>(null);
+
+  const handleCta = (f: FeatureDetail) => {
+    setOpenFeature(null);
+    if (f.cta.action === "login") {
+      if (!user) {
+        toast.info("Sign in to continue.");
+        login();
+      }
+      return;
+    }
+    if (f.cta.to) {
+      const protectedRoutes = ["/report", "/dashboard"];
+      if (!user && protectedRoutes.includes(f.cta.to)) {
+        toast.info("Please sign in to continue.");
+        login();
+        return;
+      }
+      navigate({ to: f.cta.to });
+    }
+  };
+
   return (
     <div>
       {/* HERO */}
