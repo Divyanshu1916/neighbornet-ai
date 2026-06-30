@@ -6,7 +6,7 @@ import { Protected } from "@/components/site/Protected";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { listIssues, type Issue } from "@/lib/issues";
+import { listIssues, isResolvedStatus, type Issue } from "@/lib/issues";
 import { isAdmin } from "@/lib/admin";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 
@@ -26,7 +26,7 @@ function ProfilePage() {
 
   const mine = issues.filter((i: Issue) => i.userEmail === user?.email);
   const reports = mine.length;
-  const solved = mine.filter((i) => i.status === "Solved").length;
+  const solved = mine.filter((i) => isResolvedStatus(i.status)).length;
   const points = reports * 10 + solved * 25;
 
   return (
