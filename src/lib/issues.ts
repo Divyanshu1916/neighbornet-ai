@@ -92,6 +92,7 @@ export async function listIssues(): Promise<Issue[]> {
       status: (data.status as IssueStatus) ?? "Pending",
       userEmail: (data.userEmail as string) ?? "",
       userName: data.userName as string | undefined,
+      imageURL: (data.imageURL as string | null | undefined) ?? null,
       createdAt,
     };
   });
