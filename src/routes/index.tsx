@@ -293,8 +293,8 @@ function Landing() {
             <h1 className="mt-5 font-display text-4xl font-extrabold tracking-tight sm:text-6xl">
               Be the <span className="bg-hero bg-clip-text text-transparent">Community Hero</span> your neighborhood needs.
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              NeighborNet AI helps citizens report local problems — from potholes to power cuts — and lets the whole community track and resolve them together.
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              NeighborNet AI empowers citizens to report local issues, from potholes to power cuts, while enabling the entire community to track progress and resolve them together.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               {user ? (
