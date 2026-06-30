@@ -47,7 +47,17 @@ export function IssueCard({ issue, index = 0 }: { issue: Issue; index?: number }
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.04 }}
     >
-      <Card className="group flex h-full flex-col gap-4 rounded-2xl border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card">
+      <Card className="group flex h-full flex-col gap-4 overflow-hidden rounded-2xl border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card">
+        {issue.imageURL && (
+          <div className="-mx-5 -mt-5 overflow-hidden border-b border-border/60 bg-muted">
+            <img
+              src={issue.imageURL}
+              alt={issue.title}
+              loading="lazy"
+              className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+          </div>
+        )}
         <div className="flex items-start justify-between gap-3">
           <div>
             <Badge variant="outline" className="rounded-full text-xs">{issue.category}</Badge>
