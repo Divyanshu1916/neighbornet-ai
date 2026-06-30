@@ -12,6 +12,59 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useEffect, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { getFirebase } from "@/lib/firebase";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function HeroStats() {
+  const [stats, setStats] = useState<{ reported: number; resolved: number; neighborhoods: number } | null>(null);
+  useEffect(() => {
+    const { db } = getFirebase();
+    if (!db) {
+      setStats({ reported: 0, resolved: 0, neighborhoods: 0 });
+      return;
+    }
+    const unsub = onSnapshot(
+      collection(db, "issues"),
+      (snap) => {
+        let reported = 0;
+        let resolved = 0;
+        const locs = new Set<string>();
+        snap.forEach((d) => {
+          const data = d.data() as { status?: string; location?: string };
+          reported += 1;
+          if (data.status === "Solved") resolved += 1;
+          if (data.location && data.location.trim()) locs.add(data.location.trim().toLowerCase());
+        });
+        setStats({ reported, resolved, neighborhoods: locs.size });
+      },
+      () => setStats({ reported: 0, resolved: 0, neighborhoods: 0 }),
+    );
+    return () => unsub();
+  }, []);
+
+  const items = [
+    { n: stats?.reported ?? 0, l: "Issues reported" },
+    { n: stats?.resolved ?? 0, l: "Resolved" },
+    { n: stats?.neighborhoods ?? 0, l: "Neighborhoods" },
+  ];
+
+  return (
+    <div className="mt-10 grid grid-cols-3 gap-4 text-center sm:max-w-md sm:mx-auto">
+      {items.map((s) => (
+        <div key={s.l} className="rounded-2xl border border-border bg-card/60 px-3 py-4 shadow-soft">
+          {stats === null ? (
+            <Skeleton className="mx-auto h-7 w-12" />
+          ) : (
+            <div className="font-display text-2xl font-bold text-primary">{s.n.toLocaleString()}</div>
+          )}
+          <div className="mt-1 text-xs text-muted-foreground">{s.l}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
