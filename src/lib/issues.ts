@@ -9,8 +9,10 @@ import {
   writeBatch,
   doc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { getFirebase } from "./firebase";
+import { createIssueNotification } from "./notifications";
 
 export type IssueCategory =
   | "Garbage"
@@ -21,7 +23,30 @@ export type IssueCategory =
   | "Other";
 
 export type IssueUrgency = "Low" | "Medium" | "High";
-export type IssueStatus = "Pending" | "In Progress" | "Solved";
+
+// Extended status pipeline. "Solved" kept as legacy alias of "Resolved".
+export type IssueStatus =
+  | "Pending"
+  | "Verified"
+  | "Assigned"
+  | "In Progress"
+  | "Resolved"
+  | "Closed"
+  | "Solved";
+
+export const ISSUE_STATUSES: IssueStatus[] = [
+  "Pending",
+  "Verified",
+  "Assigned",
+  "In Progress",
+  "Resolved",
+  "Closed",
+];
+
+export function isResolvedStatus(s: string | undefined | null): boolean {
+  const v = (s ?? "").toLowerCase();
+  return v === "resolved" || v === "solved" || v === "closed";
+}
 
 export interface Issue {
   id: string;
@@ -34,6 +59,7 @@ export interface Issue {
   createdAt: Date;
   userEmail: string;
   userName?: string;
+  userId?: string | null;
   imageURL?: string | null;
 }
 
@@ -45,6 +71,7 @@ export interface NewIssue {
   urgency: IssueUrgency;
   userEmail: string;
   userName?: string;
+  userId?: string | null;
   imageURL?: string | null;
 }
 
@@ -53,12 +80,29 @@ const COLLECTION = "issues";
 export async function createIssue(data: NewIssue) {
   const { db } = getFirebase();
   if (!db) throw new Error("Firestore unavailable");
-  await addDoc(collection(db, COLLECTION), {
+  const docRef = await addDoc(collection(db, COLLECTION), {
     ...data,
+    userId: data.userId ?? null,
     imageURL: data.imageURL ?? null,
     status: "Pending" as IssueStatus,
     createdAt: serverTimestamp(),
   });
+  // Fire-and-forget notification for admins
+  try {
+    await createIssueNotification({
+      issueId: docRef.id,
+      title: data.title,
+      category: data.category,
+      location: data.location,
+      urgency: data.urgency,
+      reporterId: data.userId ?? null,
+      reporterEmail: data.userEmail,
+      reporterName: data.userName ?? null,
+    });
+  } catch (e) {
+    console.warn("Notification creation failed", e);
+  }
+  return docRef.id;
 }
 
 export async function updateIssueStatus(id: string, status: IssueStatus) {
@@ -67,36 +111,52 @@ export async function updateIssueStatus(id: string, status: IssueStatus) {
   await updateDoc(doc(db, COLLECTION, id), { status });
 }
 
+export async function updateIssue(
+  id: string,
+  patch: Partial<Pick<Issue, "title" | "description" | "category" | "location" | "urgency">>,
+) {
+  const { db } = getFirebase();
+  if (!db) throw new Error("Firestore unavailable");
+  await updateDoc(doc(db, COLLECTION, id), patch);
+}
+
+export async function deleteIssue(id: string) {
+  const { db } = getFirebase();
+  if (!db) throw new Error("Firestore unavailable");
+  await deleteDoc(doc(db, COLLECTION, id));
+}
+
+function rowToIssue(d: { id: string; data: () => Record<string, unknown> }): Issue {
+  const data = d.data();
+  const created = data.createdAt;
+  const createdAt =
+    created instanceof Timestamp
+      ? created.toDate()
+      : created instanceof Date
+        ? created
+        : new Date();
+  return {
+    id: d.id,
+    title: (data.title as string) ?? "",
+    description: (data.description as string) ?? "",
+    category: (data.category as IssueCategory) ?? "Other",
+    location: (data.location as string) ?? "",
+    urgency: (data.urgency as IssueUrgency) ?? "Low",
+    status: (data.status as IssueStatus) ?? "Pending",
+    userEmail: (data.userEmail as string) ?? "",
+    userName: data.userName as string | undefined,
+    userId: (data.userId as string | null | undefined) ?? null,
+    imageURL: (data.imageURL as string | null | undefined) ?? null,
+    createdAt,
+  };
+}
 
 export async function listIssues(): Promise<Issue[]> {
   const { db } = getFirebase();
   if (!db) return [];
   const q = query(collection(db, COLLECTION), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
-  const items: Issue[] = snap.docs.map((d) => {
-    const data = d.data() as Record<string, unknown>;
-    const created = data.createdAt;
-    const createdAt =
-      created instanceof Timestamp
-        ? created.toDate()
-        : created instanceof Date
-          ? created
-          : new Date();
-    return {
-      id: d.id,
-      title: (data.title as string) ?? "",
-      description: (data.description as string) ?? "",
-      category: (data.category as IssueCategory) ?? "Other",
-      location: (data.location as string) ?? "",
-      urgency: (data.urgency as IssueUrgency) ?? "Low",
-      status: (data.status as IssueStatus) ?? "Pending",
-      userEmail: (data.userEmail as string) ?? "",
-      userName: data.userName as string | undefined,
-      imageURL: (data.imageURL as string | null | undefined) ?? null,
-      createdAt,
-    };
-  });
-
+  const items = snap.docs.map(rowToIssue);
   if (items.length === 0) {
     await seedDemoIssues();
     return listIssuesRaw();
@@ -109,25 +169,7 @@ async function listIssuesRaw(): Promise<Issue[]> {
   if (!db) return [];
   const q = query(collection(db, COLLECTION), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => {
-    const data = d.data() as Record<string, unknown>;
-    const created = data.createdAt;
-    const createdAt =
-      created instanceof Timestamp ? created.toDate() : new Date();
-    return {
-      id: d.id,
-      title: data.title as string,
-      description: data.description as string,
-      category: data.category as IssueCategory,
-      location: data.location as string,
-      urgency: data.urgency as IssueUrgency,
-      status: data.status as IssueStatus,
-      userEmail: data.userEmail as string,
-      userName: data.userName as string | undefined,
-      imageURL: (data.imageURL as string | null | undefined) ?? null,
-      createdAt,
-    };
-  });
+  return snap.docs.map(rowToIssue);
 }
 
 async function seedDemoIssues() {
@@ -160,7 +202,7 @@ async function seedDemoIssues() {
       category: "Street Light",
       location: "Elm Street",
       urgency: "Medium",
-      status: "Solved",
+      status: "Resolved",
       userEmail: "diego@neighbor.net",
       userName: "Diego Alvarez",
     },
@@ -170,7 +212,7 @@ async function seedDemoIssues() {
       category: "Water Leakage",
       location: "Community Garden",
       urgency: "High",
-      status: "Pending",
+      status: "Verified",
       userEmail: "sara@neighbor.net",
       userName: "Sara Khan",
     },
@@ -180,7 +222,7 @@ async function seedDemoIssues() {
       category: "Public Safety",
       location: "Hill View Apartments",
       urgency: "High",
-      status: "In Progress",
+      status: "Assigned",
       userEmail: "aarav@neighbor.net",
       userName: "Aarav Sharma",
     },
@@ -190,7 +232,7 @@ async function seedDemoIssues() {
       category: "Road Damage",
       location: "St. Mary's School",
       urgency: "Low",
-      status: "Solved",
+      status: "Closed",
       userEmail: "meera@neighbor.net",
       userName: "Meera Iyer",
     },
@@ -200,7 +242,7 @@ async function seedDemoIssues() {
   demos.forEach((item, i) => {
     const ref = doc(collection(db, COLLECTION));
     const created = new Date(Date.now() - (i + 1) * 1000 * 60 * 60 * 12);
-    batch.set(ref, { ...item, createdAt: Timestamp.fromDate(created) });
+    batch.set(ref, { ...item, userId: null, createdAt: Timestamp.fromDate(created) });
   });
   await batch.commit();
 }
@@ -224,7 +266,7 @@ export function buildLeaderboard(issues: Issue[]): LeaderboardEntry[] {
       points: 0,
     };
     entry.reported += 1;
-    if (i.status === "Solved") entry.solved += 1;
+    if (isResolvedStatus(i.status)) entry.solved += 1;
     entry.points = entry.reported * 10 + entry.solved * 25;
     map.set(i.userEmail, entry);
   }

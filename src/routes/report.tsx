@@ -113,6 +113,7 @@ function ReportPage() {
       await createIssue({
         ...parsed,
         imageURL,
+        userId: user!.uid,
         userEmail: user!.email ?? "anonymous@neighbor.net",
         userName: user!.displayName ?? undefined,
       });
