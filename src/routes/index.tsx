@@ -203,7 +203,8 @@ function HeroStats() {
         snap.forEach((d) => {
           const data = d.data() as { status?: string; location?: string };
           reported += 1;
-          if (data.status === "Solved") resolved += 1;
+          const status = (data.status ?? "").toLowerCase();
+          if (status === "solved" || status === "resolved" || status === "closed") resolved += 1;
           if (data.location && data.location.trim()) locs.add(data.location.trim().toLowerCase());
         });
         setStats({ reported, resolved, neighborhoods: locs.size });
