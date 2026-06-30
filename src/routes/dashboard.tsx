@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ListChecks, Clock, Loader2, CheckCircle2, Plus } from "lucide-react";
-import { listIssues, type Issue } from "@/lib/issues";
+import { listIssues, isResolvedStatus, type Issue } from "@/lib/issues";
 import { Protected } from "@/components/site/Protected";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,8 +47,8 @@ function DashboardPage() {
   const stats = {
     total: issues.length,
     pending: issues.filter((i: Issue) => i.status === "Pending").length,
-    progress: issues.filter((i: Issue) => i.status === "In Progress").length,
-    solved: issues.filter((i: Issue) => i.status === "Solved").length,
+    progress: issues.filter((i: Issue) => i.status === "In Progress" || i.status === "Verified" || i.status === "Assigned").length,
+    solved: issues.filter((i: Issue) => isResolvedStatus(i.status)).length,
   };
 
   return (

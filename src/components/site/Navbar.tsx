@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { isAdmin } from "@/lib/admin";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
+import { NotificationBell } from "@/components/site/NotificationBell";
 
 
-const links = [
+const baseLinks = [
   { to: "/", label: "Home" },
   { to: "/feed", label: "Feed" },
   { to: "/leaderboard", label: "Leaderboard" },
@@ -20,6 +21,8 @@ export function Navbar() {
   const { user, login, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const admin = isAdmin(user);
+  const links = admin ? [...baseLinks, { to: "/admin", label: "Admin" }] : baseLinks;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -47,7 +50,10 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          {admin && <NotificationBell />}
           <ThemeToggle />
+
+
 
           <Button
             size="sm"
@@ -91,6 +97,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
+          {admin && <NotificationBell />}
           <ThemeToggle />
           <button
             className="rounded-lg p-2 hover:bg-accent"

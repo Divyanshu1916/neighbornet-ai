@@ -13,7 +13,7 @@ export const Route = createFileRoute("/feed")({
   component: FeedPage,
 });
 
-const filters: ("All" | IssueStatus)[] = ["All", "Pending", "In Progress", "Solved"];
+const filters: ("All" | IssueStatus)[] = ["All", "Pending", "Verified", "Assigned", "In Progress", "Resolved", "Closed"];
 
 function FeedPage() {
   const { data: issues = [], isLoading, error } = useQuery({ queryKey: ["issues"], queryFn: listIssues });
