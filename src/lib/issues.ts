@@ -34,6 +34,7 @@ export interface Issue {
   createdAt: Date;
   userEmail: string;
   userName?: string;
+  imageURL?: string | null;
 }
 
 export interface NewIssue {
@@ -44,6 +45,7 @@ export interface NewIssue {
   urgency: IssueUrgency;
   userEmail: string;
   userName?: string;
+  imageURL?: string | null;
 }
 
 const COLLECTION = "issues";
@@ -53,6 +55,7 @@ export async function createIssue(data: NewIssue) {
   if (!db) throw new Error("Firestore unavailable");
   await addDoc(collection(db, COLLECTION), {
     ...data,
+    imageURL: data.imageURL ?? null,
     status: "Pending" as IssueStatus,
     createdAt: serverTimestamp(),
   });
